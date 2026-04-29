@@ -101,7 +101,7 @@ header[data-testid="stHeader"] { background: transparent !important; }
 
 /* ── Hero title ──────────────────────────────── */
 .hero-title {
-    font-size: 4.5rem !important;
+    font-size: 3.2rem !important;
     font-weight: 700 !important;
     background: linear-gradient(90deg, #c7d2fe, #818cf8, #6366f1) !important;
     -webkit-background-clip: text !important;
@@ -134,7 +134,7 @@ header[data-testid="stHeader"] { background: transparent !important; }
 
 /* ── Responsividade Mobile ───────────────────── */
 @media (max-width: 768px) {
-    .hero-title { font-size: 2.5rem !important; }
+    .hero-title { font-size: 1.75rem !important; }
     .hero-subtitle { font-size: 0.9rem; }
     .glass-card { padding: 1rem 1.2rem; }
     div.stButton > button {
