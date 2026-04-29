@@ -104,21 +104,29 @@ def fetch_and_process_data(tickers):
             signal = "-"
             risco = "-"
             
+            # Arredondar para 2 casas decimais para permitir D == D-1
+            k3_c = round(curr_k3, 2)
+            k3_p = round(prev_k3, 2)
+            
             if is_buy:
                 signal = "🟢 BUY"
-                if curr_k3 > prev_k3:
+                if k3_c > k3_p:
                     risco = "Baixo"
-                elif curr_k3 == prev_k3:
+                elif k3_c == k3_p:
                     risco = "Médio"
-                elif curr_k3 < prev_k3 and (20 <= curr_k3 <= 50):
+                elif k3_c < k3_p:
+                    # Se estiver caindo e estiver entre 20 e 50 (conforme regra restrita) é Alto.
+                    # Se cair fora dessa faixa, assumimos Alto por ser um movimento adverso (queda no Buy).
                     risco = "Alto"
             elif is_sell:
                 signal = "🔴 SELL"
-                if curr_k3 < prev_k3:
+                if k3_c < k3_p:
                     risco = "Baixo"
-                elif curr_k3 == prev_k3:
+                elif k3_c == k3_p:
                     risco = "Médio"
-                elif curr_k3 > prev_k3 and (50 <= curr_k3 <= 80):
+                elif k3_c > k3_p:
+                    # Se estiver subindo e estiver entre 50 e 80 é Alto.
+                    # Se cair fora da faixa, assumimos Alto por ser movimento adverso (alta no Sell).
                     risco = "Alto"
                 
             if signal != "-":
