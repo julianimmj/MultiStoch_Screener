@@ -83,7 +83,7 @@ def fetch_and_process_data(tickers):
             fmfi_crossunder = (prev_fmfi >= prev2_fmfi) and (curr_fmfi < prev_fmfi)
             
             # Condição BUY A
-            buy_A_1 = (curr_k3 > curr_stoch320) or (curr_d3 > curr_stoch320)
+            buy_A_1 = (curr_k3 > curr_stoch320)
             buy_A_2 = (curr_fmfi < 50) and fmfi_crossover
             buy_A = buy_A_1 and buy_A_2
             
@@ -96,7 +96,7 @@ def fetch_and_process_data(tickers):
             
             # Condição SELL
             sell_1 = curr_stoch320 < 85
-            sell_2 = (curr_k3 < curr_stoch320) and (curr_d3 < curr_stoch320)
+            sell_2 = (curr_k3 < curr_stoch320)
             sell_3 = (curr_fmfi > 80) and fmfi_crossunder
             is_sell = sell_1 and sell_2 and sell_3
             
