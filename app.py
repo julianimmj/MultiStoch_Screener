@@ -12,46 +12,152 @@ from utils.indicators import compute_stoch320, compute_theo_park, compute_fmfi
 # SETUP DA PÁGINA
 # ---------------------------------------------------------
 st.set_page_config(
-    page_title="MultiStoch & FMFI Screener",
+    page_title="MultiStoch & FMFI Confluence",
     page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Dark Mode custom CSS
+# ==========================================================
+# DESIGN SYSTEM: Darklight Premium + Glassmorphism + Mobile
+# ==========================================================
 st.markdown("""
-    <style>
-    .stApp {
-        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-        color: #F8FAFC;
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ── Base ────────────────────────────────────── */
+html, body, .stApp {
+    font-family: 'Inter', sans-serif;
+}
+.stApp {
+    background: linear-gradient(160deg, #0a0f1a 0%, #111827 40%, #1e1b4b 100%);
+    color: #e2e8f0;
+}
+
+/* ── Sidebar ─────────────────────────────────── */
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #0f172a 0%, #1a1040 100%) !important;
+    border-right: 1px solid rgba(99, 102, 241, 0.15);
+}
+section[data-testid="stSidebar"] .stMarkdown h2,
+section[data-testid="stSidebar"] .stMarkdown h3 {
+    color: #a5b4fc !important;
+}
+
+/* ── Botões ───────────────────────────────────── */
+div.stButton > button {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 0.75rem 1.6rem !important;
+    font-weight: 600 !important;
+    font-size: 15px !important;
+    letter-spacing: 0.02em !important;
+    transition: all 0.3s cubic-bezier(.4,0,.2,1) !important;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3) !important;
+}
+div.stButton > button:hover {
+    background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%) !important;
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* ── Tabela / DataFrame ──────────────────────── */
+.stDataFrame {
+    border-radius: 12px;
+    overflow: hidden;
+}
+.stDataFrame [data-testid="stDataFrameResizable"] {
+    border: 1px solid rgba(99, 102, 241, 0.15) !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+}
+
+/* ── Cards glassmorphism ─────────────────────── */
+.glass-card {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 1.6rem 2rem;
+    margin-bottom: 1.2rem;
+}
+.glass-card h3 {
+    margin-top: 0;
+    color: #a5b4fc;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+.glass-card p {
+    color: #94a3b8;
+    font-size: 0.95rem;
+    line-height: 1.7;
+}
+
+/* ── Hero title ──────────────────────────────── */
+.hero-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #c7d2fe, #818cf8, #6366f1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.3rem;
+}
+.hero-subtitle {
+    color: #64748b;
+    font-size: 1.05rem;
+    font-weight: 400;
+    margin-bottom: 1.5rem;
+}
+
+/* ── Disclaimer ──────────────────────────────── */
+.disclaimer {
+    background: rgba(245, 158, 11, 0.06);
+    border-left: 4px solid #f59e0b;
+    border-radius: 8px;
+    padding: 1.1rem 1.4rem;
+    font-size: 0.85rem;
+    color: #94a3b8;
+    line-height: 1.7;
+    margin-top: 2rem;
+}
+.disclaimer strong { color: #fbbf24; }
+
+/* ── Responsividade Mobile ───────────────────── */
+@media (max-width: 768px) {
+    .hero-title { font-size: 1.5rem; }
+    .hero-subtitle { font-size: 0.9rem; }
+    .glass-card { padding: 1rem 1.2rem; }
+    div.stButton > button {
+        width: 100% !important;
+        font-size: 14px !important;
+        padding: 0.65rem 1rem !important;
     }
-    .stDataFrame {
-        border-radius: 12px;
-        overflow: hidden;
-        background-color: rgba(15, 23, 42, 0.6);
-    }
-    div.stButton > button:first-child {
-        background-color: #3b82f6;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 0.6rem 1.2rem;
-        font-weight: 600;
-        font-size: 16px;
-        transition: all 0.3s ease;
-    }
-    div.stButton > button:first-child:hover {
-        background-color: #2563eb;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
-    }
-    </style>
+}
+</style>
 """, unsafe_allow_html=True)
 
-st.title("📈 Screener Quantitativo Institucional")
+# ==========================================================
+# HERO SECTION
+# ==========================================================
+st.markdown('<p class="hero-title">📈 MultiStoch Fourier Transformed Money Flow Confluence</p>', unsafe_allow_html=True)
+st.markdown('<p class="hero-subtitle">Screener quantitativo de alta precisão para o mercado brasileiro</p>', unsafe_allow_html=True)
+
 st.markdown("""
-**Motor de Busca Multi-Timeframe:**  
-Este algoritmo avançado monitora a confluência de múltiplos tempos gráficos e analisa o fluxo financeiro através da Transformada Discreta de Fourier. O motor varre centenas de ativos do mercado para identificar anomalias estatísticas que sugerem exaustão de ciclos, permitindo o rastreamento preciso de oportunidades de reversão de tendência.
-""")
+<div class="glass-card">
+    <h3>⚡ Como funciona o Motor de Busca</h3>
+    <p>
+        Este algoritmo avançado monitora a <strong>confluência de múltiplos tempos gráficos</strong> 
+        e analisa o fluxo financeiro institucional através da <strong>Transformada Discreta de Fourier</strong>. 
+        O motor varre centenas de ativos em tempo real para identificar <strong>anomalias estatísticas</strong> 
+        que sugerem exaustão de ciclos de mercado, permitindo o rastreamento preciso de oportunidades 
+        de reversão de tendência com classificação de risco integrada.
+    </p>
+</div>
+""", unsafe_allow_html=True)
 
 # ---------------------------------------------------------
 # FUNÇÃO DE CAPTURA DE DADOS (COM CACHE)
@@ -161,43 +267,71 @@ def fetch_and_process_data(tickers):
             
     return pd.DataFrame(results)
 
-# ---------------------------------------------------------
-# INTERFACE DO USUÁRIO
-# ---------------------------------------------------------
+# ==========================================================
+# SIDEBAR (Painel de Controle – recolhível no mobile)
+# ==========================================================
 with st.sidebar:
-    st.header("⚙️ Configurações")
+    st.markdown('<p style="color:#a5b4fc; font-size:1.15rem; font-weight:600;">⚙️ Painel de Controle</p>', unsafe_allow_html=True)
+    st.markdown('---')
+
+    st.markdown('<p style="color:#94a3b8; font-size:0.85rem; margin-bottom:4px;">Universo de Ativos</p>', unsafe_allow_html=True)
     inc_stocks = st.checkbox("Ações B3", value=True)
-    inc_etfs = st.checkbox("ETFs", value=True)
-    inc_bdrs = st.checkbox("BDRs", value=True)
-    
-    st.markdown("---")
-    if st.button("🔄 Executar Varredura", type="primary"):
-        st.cache_data.clear() # Limpa o cache para forçar atualização ao clicar no botão
-        
+    inc_etfs   = st.checkbox("ETFs", value=True)
+    inc_bdrs   = st.checkbox("BDRs", value=True)
+
+    st.markdown('---')
+    if st.button("🔄  Executar Varredura", type="primary", use_container_width=True):
+        st.cache_data.clear()
+
+    st.markdown('---')
+    st.markdown(
+        '<p style="color:#475569; font-size:0.75rem; text-align:center;">'
+        'Cache atualizado a cada 24 h.<br>Clique acima para forçar refresh.</p>',
+        unsafe_allow_html=True
+    )
+
+# ==========================================================
+# CORPO PRINCIPAL
+# ==========================================================
 tickers_to_scan = get_all_tickers(inc_stocks, inc_etfs, inc_bdrs)
 
 if not tickers_to_scan:
-    st.warning("Selecione pelo menos uma categoria de ativos na barra lateral.")
+    st.warning("Selecione pelo menos uma categoria de ativos no painel lateral.")
 else:
-    with st.spinner(f"Avaliando {len(tickers_to_scan)} ativos... (Pode demorar um pouco na primeira execução)"):
+    with st.spinner(f"Processando {len(tickers_to_scan)} ativos — aguarde a primeira execução…"):
         df_results = fetch_and_process_data(tickers_to_scan)
-        
+
     if df_results.empty:
-        st.info("Nenhum ativo disparou sinal de Compra ou Venda hoje sob estas condições específicas.")
+        st.markdown("""
+        <div class="glass-card" style="text-align:center; padding:2rem;">
+            <p style="font-size:1.1rem; color:#94a3b8;">Nenhum ativo disparou sinal de <strong>Compra</strong> ou <strong>Venda</strong> hoje sob estas condições.</p>
+        </div>
+        """, unsafe_allow_html=True)
     else:
-        st.success(f"Busca concluída! {len(df_results)} oportunidades encontradas.")
+        col_l, col_r = st.columns([3, 1])
+        with col_l:
+            st.markdown(
+                f'<p style="color:#a5b4fc; font-weight:600; font-size:1rem;">'
+                f'✅ Busca concluída — <span style="color:#34d399;">{len(df_results)}</span> oportunidade(s) encontrada(s)</p>',
+                unsafe_allow_html=True
+            )
         st.dataframe(
             df_results,
             use_container_width=True,
             hide_index=True
         )
 
-st.markdown("---")
+# ==========================================================
+# DISCLAIMER
+# ==========================================================
 st.markdown("""
-<div style='background-color: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b; font-size: 14px; color: #cbd5e1;'>
-<strong>⚠️ AVISO LEGAL (DISCLAIMER):</strong> Esta aplicação possui finalidade puramente educacional e de estudo quantitativo. 
-Os sinais gerados por este motor (BUY/SELL) baseiam-se estritamente em modelos estatísticos e matemáticos aplicados a dados históricos. 
-<strong>Eles NÃO configuram, sob nenhuma hipótese, recomendação, indicação ou aconselhamento de compra ou venda de valores mobiliários.</strong> 
-O mercado de capitais envolve riscos. O uso desta ferramenta para tomada de decisões financeiras é de inteira responsabilidade do usuário.
+<div class="disclaimer">
+    <strong>⚠️ AVISO LEGAL (DISCLAIMER):</strong> Esta aplicação possui finalidade puramente 
+    educacional e de estudo quantitativo. Os sinais gerados por este motor (BUY / SELL) 
+    baseiam-se estritamente em modelos estatísticos e matemáticos aplicados a dados históricos. 
+    <strong>Eles NÃO configuram, sob nenhuma hipótese, recomendação, indicação ou 
+    aconselhamento de compra ou venda de valores mobiliários.</strong> 
+    O mercado de capitais envolve riscos. O uso desta ferramenta para tomada de decisões 
+    financeiras é de inteira responsabilidade do usuário.
 </div>
 """, unsafe_allow_html=True)
