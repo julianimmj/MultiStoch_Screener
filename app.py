@@ -154,7 +154,7 @@ header[data-testid="stHeader"] { background: transparent !important; }
 logo_path = Path(__file__).parent / "assets" / "logo.png"
 if logo_path.exists():
     logo_b64 = base64.b64encode(logo_path.read_bytes()).decode()
-    logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="height:3.84rem; vertical-align:middle; margin-right:0.5rem;"/>'
+    logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="height:4.2rem; vertical-align:middle; margin-right:0.5rem;"/>'
 else:
     logo_html = ""
 st.markdown(f'<h1 class="hero-title">{logo_html}MultiStoch Fourier Transformed Money Flow Confluence</h1>', unsafe_allow_html=True)
