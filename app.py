@@ -22,18 +22,36 @@ st.set_page_config(
 st.markdown("""
     <style>
     .stApp {
-        background-color: #0E1117;
-        color: #FAFAFA;
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+        color: #F8FAFC;
     }
     .stDataFrame {
-        border-radius: 10px;
+        border-radius: 12px;
         overflow: hidden;
+        background-color: rgba(15, 23, 42, 0.6);
+    }
+    div.stButton > button:first-child {
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.6rem 1.2rem;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+    div.stButton > button:first-child:hover {
+        background-color: #2563eb;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
     }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("📈 MultiStoch Fourier Transformed Money Flow Confluence")
-st.markdown("Screener quantitativo operando na confluência de múltiplos timeframes e ciclos de fluxo de dinheiro.")
+st.title("📈 Screener Quantitativo Institucional")
+st.markdown("""
+**Motor de Busca Multi-Timeframe:**  
+Este algoritmo avançado monitora a confluência de múltiplos tempos gráficos e analisa o fluxo financeiro através da Transformada Discreta de Fourier. O motor varre centenas de ativos do mercado para identificar anomalias estatísticas que sugerem exaustão de ciclos, permitindo o rastreamento preciso de oportunidades de reversão de tendência.
+""")
 
 # ---------------------------------------------------------
 # FUNÇÃO DE CAPTURA DE DADOS (COM CACHE)
@@ -175,4 +193,11 @@ else:
         )
 
 st.markdown("---")
-st.caption("Desenvolvido para o portfólio de julianimmj. Os cálculos matemáticos exigem no mínimo 400 pregões de histórico por ativo.")
+st.markdown("""
+<div style='background-color: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b; font-size: 14px; color: #cbd5e1;'>
+<strong>⚠️ AVISO LEGAL (DISCLAIMER):</strong> Esta aplicação possui finalidade puramente educacional e de estudo quantitativo. 
+Os sinais gerados por este motor (BUY/SELL) baseiam-se estritamente em modelos estatísticos e matemáticos aplicados a dados históricos. 
+<strong>Eles NÃO configuram, sob nenhuma hipótese, recomendação, indicação ou aconselhamento de compra ou venda de valores mobiliários.</strong> 
+O mercado de capitais envolve riscos. O uso desta ferramenta para tomada de decisões financeiras é de inteira responsabilidade do usuário.
+</div>
+""", unsafe_allow_html=True)
