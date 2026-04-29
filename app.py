@@ -2,6 +2,8 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import numpy as np
+import base64
+from pathlib import Path
 from datetime import datetime, timedelta
 
 # Local modules
@@ -149,7 +151,13 @@ header[data-testid="stHeader"] { background: transparent !important; }
 # ==========================================================
 # HERO SECTION
 # ==========================================================
-st.markdown('<h1 class="hero-title">📈 MultiStoch Fourier Transformed Money Flow Confluence</h1>', unsafe_allow_html=True)
+logo_path = Path(__file__).parent / "assets" / "logo.png"
+if logo_path.exists():
+    logo_b64 = base64.b64encode(logo_path.read_bytes()).decode()
+    logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="height:3.2rem; vertical-align:middle; margin-right:0.5rem;"/>'
+else:
+    logo_html = ""
+st.markdown(f'<h1 class="hero-title">{logo_html}MultiStoch Fourier Transformed Money Flow Confluence</h1>', unsafe_allow_html=True)
 st.markdown('<p class="hero-subtitle">Screener quantitativo de alta precisão para o mercado brasileiro</p>', unsafe_allow_html=True)
 
 st.markdown("""
