@@ -96,17 +96,21 @@ div.stButton > button:hover {
     line-height: 1.7;
 }
 
+/* ── Esconder header padrão do Streamlit ─────────── */
+header[data-testid="stHeader"] { background: transparent !important; }
+
 /* ── Hero title ──────────────────────────────── */
 .hero-title {
-    font-size: 3.5rem;
-    font-weight: 700;
-    background: linear-gradient(90deg, #c7d2fe, #818cf8, #6366f1);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 0.3rem;
-    line-height: 1.15;
+    font-size: 4.5rem !important;
+    font-weight: 700 !important;
+    background: linear-gradient(90deg, #c7d2fe, #818cf8, #6366f1) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    margin-bottom: 0.2rem !important;
+    line-height: 1.1 !important;
     padding-top: 0.5rem;
+    letter-spacing: -0.02em;
 }
 .hero-subtitle {
     color: #64748b;
@@ -130,7 +134,7 @@ div.stButton > button:hover {
 
 /* ── Responsividade Mobile ───────────────────── */
 @media (max-width: 768px) {
-    .hero-title { font-size: 2.2rem; }
+    .hero-title { font-size: 2.5rem !important; }
     .hero-subtitle { font-size: 0.9rem; }
     .glass-card { padding: 1rem 1.2rem; }
     div.stButton > button {
@@ -145,7 +149,7 @@ div.stButton > button:hover {
 # ==========================================================
 # HERO SECTION
 # ==========================================================
-st.markdown('<p class="hero-title">📈 MultiStoch Fourier Transformed Money Flow Confluence</p>', unsafe_allow_html=True)
+st.markdown('<h1 class="hero-title">📈 MultiStoch Fourier Transformed Money Flow Confluence</h1>', unsafe_allow_html=True)
 st.markdown('<p class="hero-subtitle">Screener quantitativo de alta precisão para o mercado brasileiro</p>', unsafe_allow_html=True)
 
 st.markdown("""
