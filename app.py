@@ -73,6 +73,7 @@ def fetch_and_process_data(tickers):
             
             curr_stoch320 = stoch_320.iloc[-1]
             curr_k3 = k3.iloc[-1]
+            prev_k3 = k3.iloc[-2]
             curr_d3 = d3.iloc[-1]
             
             price = df['Close'].iloc[-1]
@@ -101,20 +102,38 @@ def fetch_and_process_data(tickers):
             is_sell = sell_1 and sell_2 and sell_3
             
             signal = "-"
-            color = ""
+            risco = "-"
+            
             if is_buy:
                 signal = "🟢 BUY"
+                if curr_k3 > prev_k3:
+                    risco = "Baixo"
+                elif curr_k3 == prev_k3:
+                    risco = "Médio"
+                elif curr_k3 < prev_k3:
+                    if 20 <= curr_k3 <= 50:
+                        risco = "Alto"
+                    else:
+                        risco = "Alto" # Fallback lógico
             elif is_sell:
                 signal = "🔴 SELL"
+                if curr_k3 < prev_k3:
+                    risco = "Baixo"
+                elif curr_k3 == prev_k3:
+                    risco = "Médio"
+                elif curr_k3 > prev_k3:
+                    if 50 <= curr_k3 <= 80:
+                        risco = "Alto"
+                    else:
+                        risco = "Alto" # Fallback lógico
                 
             if signal != "-":
                 results.append({
                     "Ativo": ticker.replace(".SA", ""),
                     "Preço Atual": f"R$ {price:.2f}",
                     "Sinal": signal,
-                    "Stoch 320": round(curr_stoch320, 2),
-                    "Theo Park %K3": round(curr_k3, 2),
-                    "FMFI": round(curr_fmfi, 2)
+                    "Risco": risco,
+                    "Stoch 80": f"{curr_k3:.2f}%"
                 })
                 
         except Exception as e:
