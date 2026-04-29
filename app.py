@@ -98,14 +98,15 @@ div.stButton > button:hover {
 
 /* ── Hero title ──────────────────────────────── */
 .hero-title {
-    font-size: 2.8rem;
+    font-size: 3.5rem;
     font-weight: 700;
     background: linear-gradient(90deg, #c7d2fe, #818cf8, #6366f1);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     margin-bottom: 0.3rem;
-    line-height: 1.2;
+    line-height: 1.15;
+    padding-top: 0.5rem;
 }
 .hero-subtitle {
     color: #64748b;
@@ -129,7 +130,7 @@ div.stButton > button:hover {
 
 /* ── Responsividade Mobile ───────────────────── */
 @media (max-width: 768px) {
-    .hero-title { font-size: 1.8rem; }
+    .hero-title { font-size: 2.2rem; }
     .hero-subtitle { font-size: 0.9rem; }
     .glass-card { padding: 1rem 1.2rem; }
     div.stButton > button {
