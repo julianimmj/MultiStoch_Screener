@@ -110,22 +110,16 @@ def fetch_and_process_data(tickers):
                     risco = "Baixo"
                 elif curr_k3 == prev_k3:
                     risco = "Médio"
-                elif curr_k3 < prev_k3:
-                    if 20 <= curr_k3 <= 50:
-                        risco = "Alto"
-                    else:
-                        risco = "Alto" # Fallback lógico
+                elif curr_k3 < prev_k3 and (20 <= curr_k3 <= 50):
+                    risco = "Alto"
             elif is_sell:
                 signal = "🔴 SELL"
                 if curr_k3 < prev_k3:
                     risco = "Baixo"
                 elif curr_k3 == prev_k3:
                     risco = "Médio"
-                elif curr_k3 > prev_k3:
-                    if 50 <= curr_k3 <= 80:
-                        risco = "Alto"
-                    else:
-                        risco = "Alto" # Fallback lógico
+                elif curr_k3 > prev_k3 and (50 <= curr_k3 <= 80):
+                    risco = "Alto"
                 
             if signal != "-":
                 results.append({
