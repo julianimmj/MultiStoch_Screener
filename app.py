@@ -332,9 +332,10 @@ def fetch_and_process_data(tickers):
                     # Se for o último dia (Hoje), adicionar à tabela principal
                     if i == len(df) - 1:
                         results_today.append({
+                            "Data": date_idx.strftime('%d/%m/%Y'),
                             "Ativo": ticker.replace(".SA", ""),
-                            "Preço Atual": f"R$ {price:.2f}",
                             "Sinal": signal,
+                            "Preço": f"R$ {price:.2f}",
                             "Risco": risco,
                             "Stoch 80": f"{curr_k3:.2f}%"
                         })
