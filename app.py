@@ -213,7 +213,11 @@ st.markdown("""
 # ---------------------------------------------------------
 @st.cache_data(ttl="24h")
 def fetch_and_process_data(tickers):
-    results = []
+    results_today = []
+    results_history = []
+    
+    # Data de corte para o histórico (15 dias corridos)
+    cutoff_date = datetime.today() - timedelta(days=15)
     
     # Precisamos de um histórico longo para o Stoch 320 (cerca de 400 pregões)
     # Vamos puxar 2 anos de dados
@@ -239,87 +243,113 @@ def fetch_and_process_data(tickers):
             k3, d3 = compute_theo_park(df, length=80, smoothK=20, smoothD=40)
             fmfi = compute_fmfi(df)
             
-            # Pegar últimos três dias para verificação de cruzamento exato (bolinha do TradingView = inversão)
-            curr_fmfi = fmfi.iloc[-1]
-            prev_fmfi = fmfi.iloc[-2]
-            prev2_fmfi = fmfi.iloc[-3]
+            # Iterar sobre os dias recentes (últimos 15 dias)
+            recent_dates = df[df.index >= pd.Timestamp(cutoff_date)].index
             
-            curr_stoch320 = stoch_320.iloc[-1]
-            curr_k3 = k3.iloc[-1]
-            prev_k3 = k3.iloc[-2]
-            curr_d3 = d3.iloc[-1]
-            
-            price = df['Close'].iloc[-1]
-            
-            # Condições de Direção do FMFI (Inflection Point / Bolinha do TradingView)
-            # ta.crossover(mf, mf[1]) significa mf[1] <= mf[2] and mf > mf[1]
-            fmfi_crossover = (prev_fmfi <= prev2_fmfi) and (curr_fmfi > prev_fmfi)
-            fmfi_crossunder = (prev_fmfi >= prev2_fmfi) and (curr_fmfi < prev_fmfi)
-            
-            # Condição BUY A
-            buy_A_1 = (curr_k3 > curr_stoch320)
-            buy_A_2 = (curr_fmfi < 50) and fmfi_crossover
-            buy_A = buy_A_1 and buy_A_2
-            
-            # Condição BUY B
-            buy_B_1 = curr_stoch320 > 85
-            buy_B_2 = (curr_fmfi < 20) and fmfi_crossover
-            buy_B = buy_B_1 and buy_B_2
-            # Condição BUY C
-            buy_C_1 = (curr_stoch320 > 50) and (curr_stoch320 < 85)
-            buy_C_2 = (curr_fmfi < 50) and fmfi_crossover
-            buy_C_3 = (curr_k3 >= prev_k3)
-            buy_C = buy_C_1 and buy_C_2 and buy_C_3
-            
-            is_buy = buy_A or buy_B or buy_C
-            # Condição SELL
-            sell_1 = curr_stoch320 < 85
-            sell_2 = (curr_k3 < curr_stoch320)
-            sell_3 = (curr_fmfi > 80) and fmfi_crossunder
-            is_sell = sell_1 and sell_2 and sell_3
-            
-            signal = "-"
-            risco = "-"
-            
-            # Arredondar para 2 casas decimais para permitir D == D-1
-            k3_c = round(curr_k3, 2)
-            k3_p = round(prev_k3, 2)
-            
-            if is_buy:
-                signal = "🟢 BUY"
-                if buy_C and not (buy_A or buy_B):
-                    risco = "Alto"
-                else:
-                    if k3_c > k3_p:
+            for date_idx in recent_dates:
+                i = df.index.get_loc(date_idx)
+                if i < 3: # Precisamos de pelo menos 3 dias de histórico anterior
+                    continue
+                    
+                curr_fmfi = fmfi.iloc[i]
+                prev_fmfi = fmfi.iloc[i-1]
+                prev2_fmfi = fmfi.iloc[i-2]
+                
+                curr_stoch320 = stoch_320.iloc[i]
+                curr_k3 = k3.iloc[i]
+                prev_k3 = k3.iloc[i-1]
+                curr_d3 = d3.iloc[i]
+                
+                price = df['Close'].iloc[i]
+                
+                # Condições de Direção do FMFI (Inflection Point / Bolinha do TradingView)
+                fmfi_crossover = (prev_fmfi <= prev2_fmfi) and (curr_fmfi > prev_fmfi)
+                fmfi_crossunder = (prev_fmfi >= prev2_fmfi) and (curr_fmfi < prev_fmfi)
+                
+                # Condição BUY A
+                buy_A_1 = (curr_k3 > curr_stoch320)
+                buy_A_2 = (curr_fmfi < 50) and fmfi_crossover
+                buy_A = buy_A_1 and buy_A_2
+                
+                # Condição BUY B
+                buy_B_1 = curr_stoch320 > 85
+                buy_B_2 = (curr_fmfi < 20) and fmfi_crossover
+                buy_B = buy_B_1 and buy_B_2
+                
+                # Condição BUY C
+                buy_C_1 = (curr_stoch320 > 50) and (curr_stoch320 < 85)
+                buy_C_2 = (curr_fmfi < 50) and fmfi_crossover
+                buy_C_3 = (curr_k3 >= prev_k3)
+                buy_C = buy_C_1 and buy_C_2 and buy_C_3
+                
+                is_buy = buy_A or buy_B or buy_C
+                
+                # Condição SELL
+                sell_1 = curr_stoch320 < 85
+                sell_2 = (curr_k3 < curr_stoch320)
+                sell_3 = (curr_fmfi > 80) and fmfi_crossunder
+                is_sell = sell_1 and sell_2 and sell_3
+                
+                signal = "-"
+                risco = "-"
+                
+                # Arredondar para 2 casas decimais para permitir D == D-1
+                k3_c = round(curr_k3, 2)
+                k3_p = round(prev_k3, 2)
+                
+                if is_buy:
+                    signal = "🟢 BUY"
+                    if buy_C and not (buy_A or buy_B):
+                        risco = "Alto"
+                    else:
+                        if k3_c > k3_p:
+                            risco = "Baixo"
+                        elif k3_c == k3_p:
+                            risco = "Médio"
+                        elif k3_c < k3_p:
+                            risco = "Alto"
+                elif is_sell:
+                    signal = "🔴 SELL"
+                    if k3_c < k3_p:
                         risco = "Baixo"
                     elif k3_c == k3_p:
                         risco = "Médio"
-                    elif k3_c < k3_p:
+                    elif k3_c > k3_p:
                         risco = "Alto"
-            elif is_sell:
-                signal = "🔴 SELL"
-                if k3_c < k3_p:
-                    risco = "Baixo"
-                elif k3_c == k3_p:
-                    risco = "Médio"
-                elif k3_c > k3_p:
-                    # Se estiver subindo e estiver entre 50 e 80 é Alto.
-                    # Se cair fora da faixa, assumimos Alto por ser movimento adverso (alta no Sell).
-                    risco = "Alto"
-                
-            if signal != "-":
-                results.append({
-                    "Ativo": ticker.replace(".SA", ""),
-                    "Preço Atual": f"R$ {price:.2f}",
-                    "Sinal": signal,
-                    "Risco": risco,
-                    "Stoch 80": f"{curr_k3:.2f}%"
-                })
+                    
+                if signal != "-":
+                    # Adicionar ao histórico
+                    results_history.append({
+                        "Data (Raw)": date_idx, # Para ordenação depois
+                        "Data": date_idx.strftime('%d/%m/%Y'),
+                        "Ativo": ticker.replace(".SA", ""),
+                        "Sinal": signal,
+                        "Preço": f"R$ {price:.2f}",
+                        "Risco": risco,
+                        "Stoch 80": f"{curr_k3:.2f}%"
+                    })
+                    
+                    # Se for o último dia (Hoje), adicionar à tabela principal
+                    if i == len(df) - 1:
+                        results_today.append({
+                            "Ativo": ticker.replace(".SA", ""),
+                            "Preço Atual": f"R$ {price:.2f}",
+                            "Sinal": signal,
+                            "Risco": risco,
+                            "Stoch 80": f"{curr_k3:.2f}%"
+                        })
                 
         except Exception as e:
             continue
             
-    return pd.DataFrame(results)
+    df_today = pd.DataFrame(results_today)
+    
+    df_hist = pd.DataFrame(results_history)
+    if not df_hist.empty:
+        # Ordenar da data mais recente para a mais antiga
+        df_hist = df_hist.sort_values(by="Data (Raw)", ascending=False).drop(columns=["Data (Raw)"])
+        
+    return df_today, df_hist
 
 # ==========================================================
 # SIDEBAR (Painel de Controle – recolhível no mobile)
@@ -353,9 +383,9 @@ if not tickers_to_scan:
     st.warning("Selecione pelo menos uma categoria de ativos no painel lateral.")
 else:
     with st.spinner(f"Processando {len(tickers_to_scan)} ativos — aguarde a primeira execução…"):
-        df_results = fetch_and_process_data(tickers_to_scan)
+        df_today, df_hist = fetch_and_process_data(tickers_to_scan)
 
-    if df_results.empty:
+    if df_today.empty:
         st.markdown("""
         <div class="glass-card" style="text-align:center; padding:2rem;">
             <p style="font-size:1.1rem; color:#94a3b8;">Nenhum ativo disparou sinal de <strong>Compra</strong> ou <strong>Venda</strong> hoje sob estas condições.</p>
@@ -366,11 +396,27 @@ else:
         with col_l:
             st.markdown(
                 f'<p style="color:#a5b4fc; font-weight:600; font-size:1rem;">'
-                f'✅ Busca concluída — <span style="color:#34d399;">{len(df_results)}</span> oportunidade(s) encontrada(s)</p>',
+                f'✅ Sinais de Hoje — <span style="color:#34d399;">{len(df_today)}</span> oportunidade(s) encontrada(s)</p>',
                 unsafe_allow_html=True
             )
         st.dataframe(
-            df_results,
+            df_today,
+            use_container_width=True,
+            hide_index=True
+        )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(
+        f'<p style="color:#94a3b8; font-weight:600; font-size:1rem;">'
+        f'📜 Histórico de Sinais (Últimos 15 dias)</p>',
+        unsafe_allow_html=True
+    )
+    
+    if df_hist.empty:
+        st.info("Nenhum sinal registrado nos últimos 15 dias.")
+    else:
+        st.dataframe(
+            df_hist,
             use_container_width=True,
             hide_index=True
         )
