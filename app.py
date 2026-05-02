@@ -115,8 +115,7 @@ div.stButton > button:hover {
     line-height: 1.7;
 }
 
-/* ── Esconder header padrão do Streamlit ─────────── */
-header[data-testid="stHeader"] { background: transparent !important; }
+/* ── Streamlit branding — gerenciado pelo bloco hide_streamlit_style ── */
 
 /* ── Hero section ──────────────────────────────── */
 .hero-container {
