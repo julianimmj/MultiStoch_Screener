@@ -148,18 +148,25 @@ header[data-testid="stHeader"] { background: transparent !important; }
 /* ── Responsividade Mobile ───────────────────── */
 @media (max-width: 768px) {
     .hero-container {
-        align-items: flex-start;
-        gap: 0.6rem;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0.5rem;
     }
     .hero-logo { 
-        height: 2.2rem; 
-        margin-top: 0.2rem;
+        height: 3.2rem; 
+        margin-top: 0;
     }
     .hero-title { 
-        font-size: 1.6rem !important; 
+        font-size: 1.8rem !important; 
         line-height: 1.25 !important;
+        text-align: center;
+        padding-top: 0;
     }
-    .hero-subtitle { font-size: 0.9rem; }
+    .hero-subtitle { 
+        font-size: 0.9rem; 
+        text-align: center;
+    }
     .glass-card { padding: 1rem 1.2rem; }
     div.stButton > button {
         width: 100% !important;
