@@ -101,7 +101,18 @@ div.stButton > button:hover {
 /* ── Esconder header padrão do Streamlit ─────────── */
 header[data-testid="stHeader"] { background: transparent !important; }
 
-/* ── Hero title ──────────────────────────────── */
+/* ── Hero section ──────────────────────────────── */
+.hero-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.2rem;
+}
+.hero-logo {
+    height: 4.2rem;
+    object-fit: contain;
+    flex-shrink: 0;
+}
 .hero-title {
     font-size: 3.2rem !important;
     font-weight: 700 !important;
@@ -109,9 +120,9 @@ header[data-testid="stHeader"] { background: transparent !important; }
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     background-clip: text !important;
-    margin-bottom: 0.2rem !important;
+    margin: 0 !important;
     line-height: 1.1 !important;
-    padding-top: 0.5rem;
+    padding-top: 0.2rem;
     letter-spacing: -0.02em;
 }
 .hero-subtitle {
@@ -136,7 +147,18 @@ header[data-testid="stHeader"] { background: transparent !important; }
 
 /* ── Responsividade Mobile ───────────────────── */
 @media (max-width: 768px) {
-    .hero-title { font-size: 1.75rem !important; }
+    .hero-container {
+        align-items: flex-start;
+        gap: 0.6rem;
+    }
+    .hero-logo { 
+        height: 2.2rem; 
+        margin-top: 0.2rem;
+    }
+    .hero-title { 
+        font-size: 1.6rem !important; 
+        line-height: 1.25 !important;
+    }
     .hero-subtitle { font-size: 0.9rem; }
     .glass-card { padding: 1rem 1.2rem; }
     div.stButton > button {
@@ -154,10 +176,16 @@ header[data-testid="stHeader"] { background: transparent !important; }
 logo_path = Path(__file__).parent / "assets" / "logo.png"
 if logo_path.exists():
     logo_b64 = base64.b64encode(logo_path.read_bytes()).decode()
-    logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="height:4.2rem; vertical-align:middle; margin-right:0.5rem;"/>'
+    logo_html = f'<img class="hero-logo" src="data:image/png;base64,{logo_b64}"/>'
 else:
     logo_html = ""
-st.markdown(f'<h1 class="hero-title">{logo_html}MultiStoch Fourier Transformed Money Flow Confluence</h1>', unsafe_allow_html=True)
+
+st.markdown(f'''
+<div class="hero-container">
+    {logo_html}
+    <h1 class="hero-title">MultiStoch Fourier Transformed Money Flow Confluence</h1>
+</div>
+''', unsafe_allow_html=True)
 st.markdown('<p class="hero-subtitle">Screener quantitativo de alta precisão para o mercado brasileiro</p>', unsafe_allow_html=True)
 
 st.markdown("""
