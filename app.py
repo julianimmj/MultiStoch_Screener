@@ -265,9 +265,13 @@ def fetch_and_process_data(tickers):
             buy_B_1 = curr_stoch320 > 85
             buy_B_2 = (curr_fmfi < 20) and fmfi_crossover
             buy_B = buy_B_1 and buy_B_2
+            # Condição BUY C
+            buy_C_1 = (curr_stoch320 > 50) and (curr_stoch320 < 85)
+            buy_C_2 = (curr_fmfi < 50) and fmfi_crossover
+            buy_C_3 = (curr_k3 >= prev_k3)
+            buy_C = buy_C_1 and buy_C_2 and buy_C_3
             
-            is_buy = buy_A or buy_B
-            
+            is_buy = buy_A or buy_B or buy_C
             # Condição SELL
             sell_1 = curr_stoch320 < 85
             sell_2 = (curr_k3 < curr_stoch320)
@@ -283,14 +287,15 @@ def fetch_and_process_data(tickers):
             
             if is_buy:
                 signal = "🟢 BUY"
-                if k3_c > k3_p:
-                    risco = "Baixo"
-                elif k3_c == k3_p:
-                    risco = "Médio"
-                elif k3_c < k3_p:
-                    # Se estiver caindo e estiver entre 20 e 50 (conforme regra restrita) é Alto.
-                    # Se cair fora dessa faixa, assumimos Alto por ser um movimento adverso (queda no Buy).
+                if buy_C and not (buy_A or buy_B):
                     risco = "Alto"
+                else:
+                    if k3_c > k3_p:
+                        risco = "Baixo"
+                    elif k3_c == k3_p:
+                        risco = "Médio"
+                    elif k3_c < k3_p:
+                        risco = "Alto"
             elif is_sell:
                 signal = "🔴 SELL"
                 if k3_c < k3_p:

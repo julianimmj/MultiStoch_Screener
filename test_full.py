@@ -52,7 +52,8 @@ for ticker, df in dict_dfs.items():
 
         buy_A = (curr_k3 > curr_stoch320) and (curr_fmfi < 50) and fmfi_crossover
         buy_B = (curr_stoch320 > 85) and (curr_fmfi < 20) and fmfi_crossover
-        is_buy = buy_A or buy_B
+        buy_C = (curr_stoch320 > 50) and (curr_stoch320 < 85) and (curr_fmfi < 50) and fmfi_crossover and (curr_k3 >= prev_k3)
+        is_buy = buy_A or buy_B or buy_C
 
         sell_1 = curr_stoch320 < 85
         sell_2 = curr_k3 < curr_stoch320
@@ -63,12 +64,15 @@ for ticker, df in dict_dfs.items():
         k3_p = round(prev_k3, 2)
 
         if is_buy:
-            if k3_c > k3_p:
-                risco = "Baixo"
-            elif k3_c == k3_p:
-                risco = "Médio"
-            elif k3_c < k3_p:
+            if buy_C and not (buy_A or buy_B):
                 risco = "Alto"
+            else:
+                if k3_c > k3_p:
+                    risco = "Baixo"
+                elif k3_c == k3_p:
+                    risco = "Médio"
+                elif k3_c < k3_p:
+                    risco = "Alto"
             buys.append(f"  BUY  {ticker.replace('.SA',''):>8}  R${price:>8.2f}  Stoch80={k3_c:>6.2f}%  Risco={risco}")
 
         if is_sell:
