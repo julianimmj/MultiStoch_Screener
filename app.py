@@ -375,7 +375,7 @@ with st.sidebar:
     inc_stocks = st.checkbox("Ações B3", value=True)
     inc_etfs   = st.checkbox("ETFs", value=True)
     inc_bdrs   = st.checkbox("BDRs", value=True)
-    inc_fiis   = st.checkbox("FIIs", value=False)
+    inc_fiis   = st.checkbox("FIIs", value=True)
 
     st.markdown('---')
     if st.button("🔄  Executar Varredura", type="primary", use_container_width=True):
