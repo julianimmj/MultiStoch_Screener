@@ -375,6 +375,7 @@ with st.sidebar:
     inc_stocks = st.checkbox("Ações B3", value=True)
     inc_etfs   = st.checkbox("ETFs", value=True)
     inc_bdrs   = st.checkbox("BDRs", value=True)
+    inc_fiis   = st.checkbox("FIIs", value=False)
 
     st.markdown('---')
     if st.button("🔄  Executar Varredura", type="primary", use_container_width=True):
@@ -390,7 +391,7 @@ with st.sidebar:
 # ==========================================================
 # CORPO PRINCIPAL
 # ==========================================================
-tickers_to_scan = get_all_tickers(inc_stocks, inc_etfs, inc_bdrs)
+tickers_to_scan = get_all_tickers(inc_stocks, inc_etfs, inc_bdrs, inc_fiis)
 
 if not tickers_to_scan:
     st.warning("Selecione pelo menos uma categoria de ativos no painel lateral.")
