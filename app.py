@@ -23,11 +23,13 @@ st.set_page_config(
 # ── Ocultar elementos do Streamlit Cloud (sem afetar sidebar) ──
 st.markdown("""
 <style>
-    .stDeployButton {display: none !important;}
+    .stAppDeployButton {display: none !important;}
+    .stMainMenu {display: none !important;}
     [data-testid="manage-app-button"] {display: none !important;}
     #GithubIcon {display: none !important;}
     .viewerBadge_container__1QSob {display: none !important;}
     .viewerBadge_link__qRIco {display: none !important;}
+    [data-testid="stStatusWidget"] {display: none !important;}
 </style>
 """, unsafe_allow_html=True)
 
