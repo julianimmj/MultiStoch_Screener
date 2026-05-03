@@ -252,7 +252,7 @@ def fetch_and_process_data(tickers):
                 
             # Calcular indicadores
             stoch_320 = compute_stoch320(df)
-            k3, d3 = compute_theo_park(df, length=80, smoothK=20, smoothD=40)
+            k3, d3 = compute_theo_park(df, length=80, smoothK=40, smoothD=20)
             fmfi = compute_fmfi(df)
             
             # Iterar sobre os dias recentes (últimos 15 dias)

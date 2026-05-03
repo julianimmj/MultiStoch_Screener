@@ -27,11 +27,12 @@ def compute_stoch320(df: pd.DataFrame, length=320, smooth=80) -> pd.Series:
 # ---------------------------------------------------------
 # 4 Multi-Timeframe Stochastic - Theo Park (80)
 # ---------------------------------------------------------
-def compute_theo_park(df: pd.DataFrame, length=80, smoothK=20, smoothD=40):
+def compute_theo_park(df: pd.DataFrame, length=80, smoothK=40, smoothD=20):
     """
     Theo Park Stoch Instance 3:
-    %K3 = SMA(Stoch(80), 20)
-    %D3 = SMA(%K3, 40)
+    %K3 = SMA(Stoch(80), 40)
+    %D3 = SMA(%K3, 20)
+    Matches TradingView '4 Multi-Timeframe Stochastic-Theo Park' Instance 3.
     """
     high = df['High']
     low = df['Low']
