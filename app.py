@@ -20,6 +20,17 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# ── Ocultar elementos do Streamlit Cloud (sem afetar sidebar) ──
+st.markdown("""
+<style>
+    .stDeployButton {display: none !important;}
+    [data-testid="manage-app-button"] {display: none !important;}
+    #GithubIcon {display: none !important;}
+    .viewerBadge_container__1QSob {display: none !important;}
+    .viewerBadge_link__qRIco {display: none !important;}
+</style>
+""", unsafe_allow_html=True)
+
 # ==========================================================
 # DESIGN SYSTEM: Darklight Premium + Glassmorphism + Mobile
 # ==========================================================
