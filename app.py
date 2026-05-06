@@ -255,6 +255,10 @@ def fetch_and_process_data(tickers):
             k3, d3 = compute_theo_park(df, length=80, smoothK=40, smoothD=20)
             fmfi = compute_fmfi(df)
             
+            # Médias móveis para filtro de tendência (calculadas sempre, usadas condicionalmente)
+            sma50 = df['Close'].rolling(window=50).mean()
+            ema200 = df['Close'].ewm(span=200, adjust=False).mean()
+            
             # Iterar sobre os dias recentes (últimos 15 dias)
             recent_dates = df[df.index >= pd.Timestamp(cutoff_date)].index
             
@@ -301,6 +305,25 @@ def fetch_and_process_data(tickers):
                 sell_2 = (curr_k3 < curr_stoch320)
                 sell_3 = (curr_fmfi > 80) and fmfi_crossunder
                 is_sell = sell_1 and sell_2 and sell_3
+                
+                # Filtro de Tendência (SMA50/EMA200) — aplicado somente se habilitado
+                if filtro_tendencia and (is_buy or is_sell):
+                    curr_sma50 = sma50.iloc[i]
+                    curr_ema200 = ema200.iloc[i]
+                    
+                    if is_buy:
+                        if curr_sma50 <= curr_ema200:
+                            # Tendência de baixa: BUY só se preço >= SMA50
+                            if price < curr_sma50:
+                                is_buy = False
+                        # Se SMA50 >= EMA200: tendência de alta, qualquer BUY passa
+                    
+                    if is_sell:
+                        if curr_sma50 >= curr_ema200:
+                            # Tendência de alta: SELL só se preço <= SMA50
+                            if price > curr_sma50:
+                                is_sell = False
+                        # Se SMA50 <= EMA200: tendência de baixa, qualquer SELL passa
                 
                 signal = "-"
                 risco = "-"
@@ -378,6 +401,11 @@ with st.sidebar:
     inc_fiis   = st.checkbox("FIIs", value=True)
 
     st.markdown('---')
+    st.markdown('<p style="color:#94a3b8; font-size:0.85rem; margin-bottom:4px;">Filtros Adicionais</p>', unsafe_allow_html=True)
+    filtro_tendencia = st.checkbox("Filtro de Tendência (SMA50/EMA200)", value=False,
+                                   help="Filtra sinais com base no contexto de tendência: "
+                                        "SMA(50) vs EMA(200) e posição do preço em relação à SMA(50).")
+
     if st.button("🔄  Executar Varredura", type="primary", use_container_width=True):
         st.cache_data.clear()
 
