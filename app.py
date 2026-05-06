@@ -224,7 +224,7 @@ st.markdown("""
 # FUNÇÃO DE CAPTURA DE DADOS (COM CACHE)
 # ---------------------------------------------------------
 @st.cache_data(ttl="24h")
-def fetch_and_process_data(tickers):
+def fetch_and_process_data(tickers, filtro_tendencia=False):
     results_today = []
     results_history = []
     
@@ -391,28 +391,39 @@ def fetch_and_process_data(tickers):
 # SIDEBAR (Painel de Controle – recolhível no mobile)
 # ==========================================================
 with st.sidebar:
-    st.markdown('<p style="color:#a5b4fc; font-size:1.15rem; font-weight:600;">⚙️ Painel de Controle</p>', unsafe_allow_html=True)
-    st.markdown('---')
+    st.markdown('<div style="text-align: center; margin-bottom: 25px;"><h2 style="color:#a5b4fc; font-weight:700; font-size:1.4rem; margin-bottom:0;">⚙️ Setup Analítico</h2></div>', unsafe_allow_html=True)
+    
+    st.markdown('<div style="background-color:rgba(30, 41, 59, 0.5); padding:15px; border-radius:10px; border:1px solid #334155; margin-bottom:20px;">'
+                '<p style="color:#cbd5e1; font-size:0.95rem; font-weight:600; margin-bottom:12px; margin-top:0;">📋 Universo de Ativos</p>', unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        inc_stocks = st.checkbox("Ações B3", value=True)
+        inc_bdrs   = st.checkbox("BDRs", value=True)
+    with col2:
+        inc_etfs   = st.checkbox("ETFs", value=True)
+        inc_fiis   = st.checkbox("FIIs", value=True)
+        
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<p style="color:#94a3b8; font-size:0.85rem; margin-bottom:4px;">Universo de Ativos</p>', unsafe_allow_html=True)
-    inc_stocks = st.checkbox("Ações B3", value=True)
-    inc_etfs   = st.checkbox("ETFs", value=True)
-    inc_bdrs   = st.checkbox("BDRs", value=True)
-    inc_fiis   = st.checkbox("FIIs", value=True)
+    st.markdown('<div style="background-color:rgba(30, 41, 59, 0.5); padding:15px; border-radius:10px; border:1px solid #334155; margin-bottom:25px;">'
+                '<p style="color:#cbd5e1; font-size:0.95rem; font-weight:600; margin-bottom:12px; margin-top:0;">🛡️ Filtros de Contexto</p>', unsafe_allow_html=True)
+    
+    filtro_tendencia = st.checkbox("Tendência Macro (SMA50/EMA200)", value=False,
+                                   help="Bloqueia operações contra a tendência principal. "
+                                        "Exige que o preço e o cruzamento das médias SMA50/EMA200 "
+                                        "estejam alinhados com a direção do sinal.")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('---')
-    st.markdown('<p style="color:#94a3b8; font-size:0.85rem; margin-bottom:4px;">Filtros Adicionais</p>', unsafe_allow_html=True)
-    filtro_tendencia = st.checkbox("Filtro de Tendência (SMA50/EMA200)", value=False,
-                                   help="Filtra sinais com base no contexto de tendência: "
-                                        "SMA(50) vs EMA(200) e posição do preço em relação à SMA(50).")
-
-    if st.button("🔄  Executar Varredura", type="primary", use_container_width=True):
+    if st.button("🔄 Executar Varredura", type="primary", use_container_width=True):
         st.cache_data.clear()
 
-    st.markdown('---')
     st.markdown(
-        '<p style="color:#475569; font-size:0.75rem; text-align:center;">'
-        'Cache atualizado a cada 24 h.<br>Clique acima para forçar refresh.</p>',
+        '<div style="text-align:center; margin-top:20px; color:#64748b; font-size:0.8rem; line-height:1.4;">'
+        'Cache do banco de dados atualizado a cada 24h.<br>'
+        'Para forçar o motor a buscar dados em tempo real agora, clique no botão acima.'
+        '</div>',
         unsafe_allow_html=True
     )
 
@@ -425,7 +436,7 @@ if not tickers_to_scan:
     st.warning("Selecione pelo menos uma categoria de ativos no painel lateral.")
 else:
     with st.spinner(f"Processando {len(tickers_to_scan)} ativos — aguarde a primeira execução…"):
-        df_today, df_hist = fetch_and_process_data(tickers_to_scan)
+        df_today, df_hist = fetch_and_process_data(tickers_to_scan, filtro_tendencia)
 
     if df_today.empty:
         st.markdown("""
