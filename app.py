@@ -437,7 +437,7 @@ with st.sidebar:
     
     filtro_extremo = st.checkbox("⚡ Filtro Extremo (Alta Confluência)", value=False,
                                  help="Exige alinhamento simultâneo de TODOS os componentes "
-                                      "(Stoch 80, Stoch 320 e FMFI) na mesma direção. "
+                                      "do motor na mesma direção. "
                                       "Quando habilitado, substitui completamente as regras padrão.")
     
     if filtro_extremo:
