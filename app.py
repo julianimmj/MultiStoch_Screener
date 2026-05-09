@@ -290,6 +290,7 @@ def fetch_and_process_data(tickers, filtro_tendencia=False, filtro_extremo=False
                         (curr_k3 >= 15) and (curr_k3 <= 85) and
                         (curr_k3 >= prev_k3) and
                         (curr_stoch320 >= prev_stoch320) and
+                        (curr_fmfi >= 0) and (curr_fmfi <= 75) and
                         fmfi_crossover
                     )
                     # ── Condição SELL Extrema ──
@@ -298,6 +299,7 @@ def fetch_and_process_data(tickers, filtro_tendencia=False, filtro_extremo=False
                         (curr_k3 >= 15) and (curr_k3 <= 85) and
                         (curr_k3 <= prev_k3) and
                         (curr_stoch320 <= prev_stoch320) and
+                        (curr_fmfi >= 35) and (curr_fmfi <= 100) and
                         fmfi_crossunder
                     )
                 else:
