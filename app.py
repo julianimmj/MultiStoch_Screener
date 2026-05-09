@@ -224,7 +224,7 @@ st.markdown("""
 # FUNÇÃO DE CAPTURA DE DADOS (COM CACHE)
 # ---------------------------------------------------------
 @st.cache_data(ttl="24h")
-def fetch_and_process_data(tickers, filtro_tendencia=False):
+def fetch_and_process_data(tickers, filtro_tendencia=False, filtro_extremo=False):
     results_today = []
     results_history = []
     
@@ -272,6 +272,7 @@ def fetch_and_process_data(tickers, filtro_tendencia=False):
                 prev2_fmfi = fmfi.iloc[i-2]
                 
                 curr_stoch320 = stoch_320.iloc[i]
+                prev_stoch320 = stoch_320.iloc[i-1]
                 curr_k3 = k3.iloc[i]
                 prev_k3 = k3.iloc[i-1]
                 curr_d3 = d3.iloc[i]
@@ -282,29 +283,47 @@ def fetch_and_process_data(tickers, filtro_tendencia=False):
                 fmfi_crossover = (prev_fmfi <= prev2_fmfi) and (curr_fmfi > prev_fmfi)
                 fmfi_crossunder = (prev_fmfi >= prev2_fmfi) and (curr_fmfi < prev_fmfi)
                 
-                # Condição BUY A
-                buy_A_1 = (curr_k3 > curr_stoch320)
-                buy_A_2 = (curr_fmfi < 50) and fmfi_crossover
-                buy_A = buy_A_1 and buy_A_2
-                
-                # Condição BUY B
-                buy_B_1 = curr_stoch320 > 85
-                buy_B_2 = (curr_fmfi < 20) and fmfi_crossover
-                buy_B = buy_B_1 and buy_B_2
-                
-                # Condição BUY C
-                buy_C_1 = (curr_stoch320 > 50) and (curr_stoch320 < 85)
-                buy_C_2 = (curr_fmfi < 50) and fmfi_crossover
-                buy_C_3 = (curr_k3 >= prev_k3)
-                buy_C = buy_C_1 and buy_C_2 and buy_C_3
-                
-                is_buy = buy_A or buy_B or buy_C
-                
-                # Condição SELL
-                sell_1 = curr_stoch320 < 85
-                sell_2 = (curr_k3 < curr_stoch320)
-                sell_3 = (curr_fmfi > 80) and fmfi_crossunder
-                is_sell = sell_1 and sell_2 and sell_3
+                if filtro_extremo:
+                    # ── Condição BUY Extrema ──
+                    is_buy = (
+                        (curr_k3 > curr_stoch320) and
+                        (curr_k3 >= 15) and (curr_k3 <= 85) and
+                        (curr_k3 >= prev_k3) and
+                        (curr_stoch320 >= prev_stoch320) and
+                        fmfi_crossover
+                    )
+                    # ── Condição SELL Extrema ──
+                    is_sell = (
+                        (curr_k3 < curr_stoch320) and
+                        (curr_k3 >= 15) and (curr_k3 <= 85) and
+                        (curr_k3 <= prev_k3) and
+                        (curr_stoch320 <= prev_stoch320) and
+                        fmfi_crossunder
+                    )
+                else:
+                    # Condição BUY A
+                    buy_A_1 = (curr_k3 > curr_stoch320)
+                    buy_A_2 = (curr_fmfi < 50) and fmfi_crossover
+                    buy_A = buy_A_1 and buy_A_2
+                    
+                    # Condição BUY B
+                    buy_B_1 = curr_stoch320 > 85
+                    buy_B_2 = (curr_fmfi < 20) and fmfi_crossover
+                    buy_B = buy_B_1 and buy_B_2
+                    
+                    # Condição BUY C
+                    buy_C_1 = (curr_stoch320 > 50) and (curr_stoch320 < 85)
+                    buy_C_2 = (curr_fmfi < 50) and fmfi_crossover
+                    buy_C_3 = (curr_k3 >= prev_k3)
+                    buy_C = buy_C_1 and buy_C_2 and buy_C_3
+                    
+                    is_buy = buy_A or buy_B or buy_C
+                    
+                    # Condição SELL
+                    sell_1 = curr_stoch320 < 85
+                    sell_2 = (curr_k3 < curr_stoch320)
+                    sell_3 = (curr_fmfi > 80) and fmfi_crossunder
+                    is_sell = sell_1 and sell_2 and sell_3
                 
                 # Filtro de Tendência (SMA50/EMA200) — aplicado somente se habilitado
                 if filtro_tendencia and (is_buy or is_sell):
@@ -334,7 +353,7 @@ def fetch_and_process_data(tickers, filtro_tendencia=False):
                 
                 if is_buy:
                     signal = "🟢 BUY"
-                    if buy_C and not (buy_A or buy_B):
+                    if (not filtro_extremo) and buy_C and not (buy_A or buy_B):
                         risco = "Alto"
                     else:
                         if k3_c > k3_p:
@@ -414,6 +433,26 @@ with st.sidebar:
                                         "Exige que o preço e o cruzamento das médias SMA50/EMA200 "
                                         "estejam alinhados com a direção do sinal.")
     
+    st.markdown('<hr style="border:none; border-top:1px solid rgba(99,102,241,0.15); margin:14px 0;">', unsafe_allow_html=True)
+    
+    filtro_extremo = st.checkbox("⚡ Filtro Extremo (Alta Confluência)", value=False,
+                                 help="Exige alinhamento simultâneo de TODOS os componentes "
+                                      "(Stoch 80, Stoch 320 e FMFI) na mesma direção. "
+                                      "Quando habilitado, substitui completamente as regras padrão.")
+    
+    if filtro_extremo:
+        st.markdown(
+            '<div style="background:rgba(245,158,11,0.08); border-left:3px solid #f59e0b; '
+            'border-radius:6px; padding:10px 12px; margin-top:8px;">'
+            '<p style="color:#fbbf24; font-size:0.78rem; font-weight:600; margin:0 0 4px 0;">⚠️ Atenção</p>'
+            '<p style="color:#94a3b8; font-size:0.75rem; line-height:1.5; margin:0;">'
+            'Este filtro reduz drasticamente a quantidade de sinais. '
+            'Maior confluência <strong style="color:#cbd5e1;">não garante</strong> sucesso no trade, '
+            'mas aumenta exponencialmente as probabilidades estatísticas do sinal.</p>'
+            '</div>',
+            unsafe_allow_html=True
+        )
+    
     st.markdown('</div>', unsafe_allow_html=True)
 
     if st.button("🔄 Executar Varredura", type="primary", use_container_width=True):
@@ -436,7 +475,7 @@ if not tickers_to_scan:
     st.warning("Selecione pelo menos uma categoria de ativos no painel lateral.")
 else:
     with st.spinner(f"Processando {len(tickers_to_scan)} ativos — aguarde a primeira execução…"):
-        df_today, df_hist = fetch_and_process_data(tickers_to_scan, filtro_tendencia)
+        df_today, df_hist = fetch_and_process_data(tickers_to_scan, filtro_tendencia, filtro_extremo)
 
     if df_today.empty:
         st.markdown("""
