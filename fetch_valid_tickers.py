@@ -59,6 +59,10 @@ def generate_valid_tickers():
     etfs = ["BOVA11.SA", "SMAL11.SA", "IVVB11.SA", "HASH11.SA", "NASD11.SA", "DIVO11.SA"]
     bdrs = ["AAPL34.SA", "MSFT34.SA", "AMZO34.SA", "GOGL34.SA", "TSLA34.SA", "M1TA34.SA",
             "NVDC34.SA", "DISB34.SA", "MELI34.SA", "NFLX34.SA"]
+    fiis = [
+        "ALZR11.SA", "BRCO11.SA", "BRCR11.SA", "BTLG11.SA", "CPTS11.SA", "GGRC11.SA", "GTWR11.SA", "HGBS11.SA", "HGCR11.SA", "HGLG11.SA", "HGRU11.SA", "HSML11.SA", "JSRE11.SA", "KNCR11.SA", "KNRI11.SA", 
+        "KNSC11.SA", "LVBI11.SA", "MXRF11.SA", "PVBI11.SA", "RBRR11.SA", "RECR11.SA", "TGAR11.SA", "TRXF11.SA", "VGHF11.SA", "VILG11.SA", "VINO11.SA", "VISC11.SA", "VRTA11.SA", "XPLG11.SA", "XPML11.SA"
+    ]
             
     code = f'''# Arquivo gerado automaticamente filtrando ativos válidos (> 400 pregões) e alta liquidez
 
@@ -74,7 +78,11 @@ B3_BDRS = [
     {', '.join([f'"{t}"' for t in bdrs])}
 ]
 
-def get_all_tickers(include_stocks=True, include_etfs=True, include_bdrs=True):
+B3_FIIS = [
+    {', '.join([f'"{t}"' for t in fiis])}
+]
+
+def get_all_tickers(include_stocks=True, include_etfs=True, include_bdrs=True, include_fiis=False):
     tickers = []
     if include_stocks:
         tickers.extend(B3_STOCKS)
@@ -82,6 +90,8 @@ def get_all_tickers(include_stocks=True, include_etfs=True, include_bdrs=True):
         tickers.extend(B3_ETFS)
     if include_bdrs:
         tickers.extend(B3_BDRS)
+    if include_fiis:
+        tickers.extend(B3_FIIS)
     return sorted(list(set(tickers)))
 '''
     with open("data/tickers.py", "w", encoding="utf-8") as f:
