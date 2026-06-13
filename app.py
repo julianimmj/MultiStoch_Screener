@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 # Local modules
 from data.tickers import get_all_tickers
-from utils.indicators import compute_stoch320, compute_theo_park, compute_fmfi
+from utils.indicators import compute_stoch320, compute_theo_park, compute_stoch40, compute_fmfi
 
 # ---------------------------------------------------------
 # SETUP DA PÁGINA
@@ -250,10 +250,11 @@ def fetch_and_process_data(tickers, filtro_tendencia=False, filtro_extremo=False
             if len(df) < 400:
                 continue # Dados insuficientes
                 
-            # Calcular indicadores
-            stoch_320 = compute_stoch320(df)
-            k3, d3 = compute_theo_park(df, length=80, smoothK=40, smoothD=20)
-            fmfi = compute_fmfi(df)
+            # Calcular indicadores — 3 Estocásticos + FMFI
+            k1, d1 = compute_stoch320(df)          # Instância 1: length=320, smoothK=40, smoothD=3
+            k2, d2 = compute_theo_park(df)          # Instância 2: length=80,  smoothK=40, smoothD=3
+            k3, d3 = compute_stoch40(df)            # Instância 3: length=40,  smoothK=8,  smoothD=4
+            fmfi = compute_fmfi(df)                 # FMFI: fourier=4, mfi=6, smooth=3
             
             # Médias móveis para filtro de tendência (calculadas sempre, usadas condicionalmente)
             sma50 = df['Close'].rolling(window=50).mean()
@@ -271,11 +272,16 @@ def fetch_and_process_data(tickers, filtro_tendencia=False, filtro_extremo=False
                 prev_fmfi = fmfi.iloc[i-1]
                 prev2_fmfi = fmfi.iloc[i-2]
                 
-                curr_stoch320 = stoch_320.iloc[i]
-                prev_stoch320 = stoch_320.iloc[i-1]
+                # %K1 — Estocástico Longo (320)
+                curr_k1 = k1.iloc[i]
+                
+                # %K2 — Estocástico Médio (80)
+                curr_k2 = k2.iloc[i]
+                prev_k2 = k2.iloc[i-1]
+                
+                # %K3 — Estocástico Curto (40)
                 curr_k3 = k3.iloc[i]
                 prev_k3 = k3.iloc[i-1]
-                curr_d3 = d3.iloc[i]
                 
                 price = df['Close'].iloc[i]
                 
@@ -284,48 +290,67 @@ def fetch_and_process_data(tickers, filtro_tendencia=False, filtro_extremo=False
                 fmfi_crossunder = (prev_fmfi >= prev2_fmfi) and (curr_fmfi < prev_fmfi)
                 
                 if filtro_extremo:
+                    # ══════════════════════════════════════════
+                    # MODO FILTRO EXTREMO (Alta Confluência)
+                    # ══════════════════════════════════════════
+                    
                     # ── Condição BUY Extrema ──
                     is_buy = (
-                        (curr_k3 > curr_stoch320) and
-                        (curr_k3 >= 15) and (curr_k3 <= 85) and
-                        (curr_k3 >= prev_k3) and
-                        (curr_stoch320 >= prev_stoch320) and
-                        (curr_fmfi >= 0) and (curr_fmfi <= 75) and
-                        fmfi_crossover
+                        (curr_k2 >= curr_k1) and          # %K2 >= %K1
+                        (curr_k2 >= prev_k2) and          # %K2 parou de cair ou subindo
+                        (curr_k3 >= 20) and               # %K3 >= 20
+                        (curr_fmfi >= 0) and (curr_fmfi <= 60) and  # FMFI entre 0 e 60
+                        fmfi_crossover                    # Ponto de inflexão de compra
                     )
                     # ── Condição SELL Extrema ──
                     is_sell = (
-                        (curr_k3 < curr_stoch320) and
-                        (curr_k3 >= 15) and (curr_k3 <= 85) and
-                        (curr_k3 <= prev_k3) and
-                        (curr_stoch320 <= prev_stoch320) and
-                        (curr_fmfi >= 35) and (curr_fmfi <= 100) and
-                        fmfi_crossunder
+                        (curr_k2 <= curr_k1) and          # %K2 <= %K1
+                        (curr_k2 <= 85) and               # %K2 <= 85
+                        (curr_k3 <= curr_k1) and          # %K3 <= %K1
+                        (curr_fmfi >= 80) and             # FMFI >= 80
+                        fmfi_crossunder                   # Ponto de inflexão de venda
                     )
                 else:
-                    # Condição BUY A
-                    buy_A_1 = (curr_k3 > curr_stoch320)
-                    buy_A_2 = (curr_fmfi < 50) and fmfi_crossover
-                    buy_A = buy_A_1 and buy_A_2
+                    # ══════════════════════════════════════════
+                    # MODO PADRÃO
+                    # ══════════════════════════════════════════
                     
-                    # Condição BUY B
-                    buy_B_1 = curr_stoch320 > 85
-                    buy_B_2 = (curr_fmfi < 20) and fmfi_crossover
-                    buy_B = buy_B_1 and buy_B_2
+                    # ── Condição BUY A (Seguidor de Tendência) ──
+                    buy_A = (
+                        (curr_k2 >= curr_k1) and          # %K2 >= %K1
+                        (curr_k2 >= prev_k2) and          # %K2 parou de cair ou subindo
+                        (curr_k3 >= 20) and               # %K3 >= 20
+                        (curr_fmfi <= 50) and             # FMFI <= 50
+                        fmfi_crossover                    # Ponto de inflexão de compra
+                    )
                     
-                    # Condição BUY C
-                    buy_C_1 = (curr_stoch320 > 50) and (curr_stoch320 < 85)
-                    buy_C_2 = (curr_fmfi < 50) and fmfi_crossover
-                    buy_C_3 = (curr_k3 >= prev_k3)
-                    buy_C = buy_C_1 and buy_C_2 and buy_C_3
+                    # ── Condição BUY B (Reversão em Zonas Supremas) ──
+                    buy_B = (
+                        (curr_k1 >= 85) and               # %K1 >= 85
+                        (curr_k2 >= prev_k2) and          # %K2 parou de cair ou subindo
+                        (curr_k3 >= 20) and               # %K3 >= 20
+                        (curr_fmfi <= 50) and             # FMFI <= 50
+                        fmfi_crossover                    # Ponto de inflexão de compra
+                    )
+                    
+                    # ── Condição BUY C (Continuação / Pullback) ──
+                    buy_C = (
+                        (curr_k2 <= curr_k1) and          # %K2 <= %K1
+                        (curr_k2 >= prev_k2) and          # %K2 parou de cair ou subindo
+                        (curr_k3 >= curr_k2) and          # %K3 >= %K2
+                        (curr_k3 >= 20) and               # %K3 >= 20
+                        (curr_fmfi <= 50) and             # FMFI <= 50
+                        fmfi_crossover                    # Ponto de inflexão de compra
+                    )
                     
                     is_buy = buy_A or buy_B or buy_C
                     
-                    # Condição SELL
-                    sell_1 = curr_stoch320 < 85
-                    sell_2 = (curr_k3 < curr_stoch320)
-                    sell_3 = (curr_fmfi > 80) and fmfi_crossunder
-                    is_sell = sell_1 and sell_2 and sell_3
+                    # ── Condição SELL ──
+                    is_sell = (
+                        (curr_k2 <= prev_k2) and          # %K2 parou de subir ou caindo
+                        (curr_fmfi >= 60) and             # FMFI >= 60
+                        fmfi_crossunder                   # Ponto de inflexão de venda
+                    )
                 
                 # Filtro de Tendência (SMA50/EMA200) — aplicado somente se habilitado
                 if filtro_tendencia and (is_buy or is_sell):
@@ -337,14 +362,14 @@ def fetch_and_process_data(tickers, filtro_tendencia=False, filtro_extremo=False
                             # Tendência de baixa: BUY só se preço >= SMA50
                             if price < curr_sma50:
                                 is_buy = False
-                        # Se SMA50 >= EMA200: tendência de alta, qualquer BUY passa
+                        # Se SMA50 > EMA200: tendência de alta, qualquer BUY passa
                     
                     if is_sell:
                         if curr_sma50 >= curr_ema200:
                             # Tendência de alta: SELL só se preço <= SMA50
                             if price > curr_sma50:
                                 is_sell = False
-                        # Se SMA50 <= EMA200: tendência de baixa, qualquer SELL passa
+                        # Se SMA50 < EMA200: tendência de baixa, qualquer SELL passa
                 
                 signal = "-"
                 risco = "-"
@@ -382,7 +407,7 @@ def fetch_and_process_data(tickers, filtro_tendencia=False, filtro_extremo=False
                         "Sinal": signal,
                         "Preço": f"R$ {price:.2f}",
                         "Risco": risco,
-                        "Stoch 80": f"{curr_k3:.2f}%"
+                        "Stoch 80": f"{curr_k2:.2f}%"
                     })
                     
                     # Se for o último dia (Hoje), adicionar à tabela principal
@@ -393,7 +418,7 @@ def fetch_and_process_data(tickers, filtro_tendencia=False, filtro_extremo=False
                             "Sinal": signal,
                             "Preço": f"R$ {price:.2f}",
                             "Risco": risco,
-                            "Stoch 80": f"{curr_k3:.2f}%"
+                            "Stoch 80": f"{curr_k2:.2f}%"
                         })
                 
         except Exception as e:
