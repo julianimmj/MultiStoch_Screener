@@ -3,14 +3,17 @@ Teste de Validação Completa do Screener
 Simula exatamente o que o app.py faz, mas com output detalhado de debug.
 """
 import sys
-sys.path.append(r"C:\Users\julia\OneDrive\Documentos\gravity\MultiStoch_Screener")
-
+import os
 import yfinance as yf
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+
+# Dynamically append current directory to path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from data.tickers import get_all_tickers
-from utils.indicators import compute_stoch320, compute_theo_park, compute_fmfi
+from utils.indicators import compute_stoch320, compute_theo_park, compute_stoch40, compute_fmfi
 
 start_date = (datetime.today() - timedelta(days=730)).strftime('%Y-%m-%d')
 
@@ -35,30 +38,57 @@ for ticker, df in dict_dfs.items():
             total_skip += 1
             continue
 
-        stoch_320 = compute_stoch320(df)
-        k3, d3 = compute_theo_park(df, length=80, smoothK=20, smoothD=40)
-        fmfi = compute_fmfi(df)
+        # Calcular indicadores — 3 Estocásticos + FMFI
+        k1, d1 = compute_stoch320(df)          # Instância 1: length=320, smoothK=40, smoothD=3
+        k2, d2 = compute_theo_park(df)          # Instância 2: length=80,  smoothK=40, smoothD=3
+        k3, d3 = compute_stoch40(df)            # Instância 3: length=40,  smoothK=8,  smoothD=4
+        fmfi = compute_fmfi(df)                 # FMFI
 
         curr_fmfi = fmfi.iloc[-1]
         prev_fmfi = fmfi.iloc[-2]
         prev2_fmfi = fmfi.iloc[-3]
-        curr_stoch320 = stoch_320.iloc[-1]
+        
+        curr_k1 = k1.iloc[-1]
+        curr_k2 = k2.iloc[-1]
+        prev_k2 = k2.iloc[-2]
         curr_k3 = k3.iloc[-1]
         prev_k3 = k3.iloc[-2]
+        
         price = df['Close'].iloc[-1]
 
         fmfi_crossover = (prev_fmfi <= prev2_fmfi) and (curr_fmfi > prev_fmfi)
         fmfi_crossunder = (prev_fmfi >= prev2_fmfi) and (curr_fmfi < prev_fmfi)
 
-        buy_A = (curr_k3 > curr_stoch320) and (curr_fmfi < 50) and fmfi_crossover
-        buy_B = (curr_stoch320 > 85) and (curr_fmfi < 20) and fmfi_crossover
-        buy_C = (curr_stoch320 > 50) and (curr_stoch320 < 85) and (curr_fmfi < 50) and fmfi_crossover and (curr_k3 >= prev_k3)
+        # Modo Padrão
+        buy_A = (
+            (curr_k2 >= curr_k1) and
+            (curr_k2 >= prev_k2) and
+            (curr_k3 >= 20) and
+            (curr_fmfi <= 50) and
+            fmfi_crossover
+        )
+        buy_B = (
+            (curr_k1 >= 85) and
+            (curr_k2 >= prev_k2) and
+            (curr_k3 >= 20) and
+            (curr_fmfi <= 50) and
+            fmfi_crossover
+        )
+        buy_C = (
+            (curr_k2 <= curr_k1) and
+            (curr_k2 >= prev_k2) and
+            (curr_k3 >= curr_k2) and
+            (curr_k3 >= 20) and
+            (curr_fmfi <= 50) and
+            fmfi_crossover
+        )
+        
         is_buy = buy_A or buy_B or buy_C
-
-        sell_1 = curr_stoch320 < 85
-        sell_2 = curr_k3 < curr_stoch320
-        sell_3 = (curr_fmfi > 80) and fmfi_crossunder
-        is_sell = sell_1 and sell_2 and sell_3
+        is_sell = (
+            (curr_k2 <= prev_k2) and
+            (curr_fmfi >= 60) and
+            fmfi_crossunder
+        )
 
         k3_c = round(curr_k3, 2)
         k3_p = round(prev_k3, 2)
@@ -73,7 +103,7 @@ for ticker, df in dict_dfs.items():
                     risco = "Médio"
                 elif k3_c < k3_p:
                     risco = "Alto"
-            buys.append(f"  BUY  {ticker.replace('.SA',''):>8}  R${price:>8.2f}  Stoch80={k3_c:>6.2f}%  Risco={risco}")
+            buys.append(f"  BUY  {ticker.replace('.SA',''):>8}  R${price:>8.2f}  Stoch80={curr_k2:>6.2f}%  Stoch40={k3_c:>6.2f}%  Risco={risco}")
 
         if is_sell:
             if k3_c < k3_p:
@@ -82,7 +112,7 @@ for ticker, df in dict_dfs.items():
                 risco = "Médio"
             elif k3_c > k3_p:
                 risco = "Alto"
-            sells.append(f"  SELL {ticker.replace('.SA',''):>8}  R${price:>8.2f}  Stoch80={k3_c:>6.2f}%  Risco={risco}")
+            sells.append(f"  SELL {ticker.replace('.SA',''):>8}  R${price:>8.2f}  Stoch80={curr_k2:>6.2f}%  Stoch40={k3_c:>6.2f}%  Risco={risco}")
 
         total_ok += 1
 
@@ -90,7 +120,7 @@ for ticker, df in dict_dfs.items():
         total_err += 1
 
 print(f"\n{'='*60}")
-print(f"RESULTADOS DA VARREDURA")
+print(f"RESULTADOS DA VARREDURA (MODO PADRÃO)")
 print(f"{'='*60}")
 print(f"Ativos processados com sucesso: {total_ok}")
 print(f"Ativos pulados (< 400 pregões): {total_skip}")
